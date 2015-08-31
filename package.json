@@ -1,0 +1,16 @@
+{
+  "name": "mko2",
+  "version": "0.0.1",
+  "description": "The MKO2 language",
+  "main": "index.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Fredrik Andersson",
+  "license": "BSD",
+  "dependencies": {
+    "async": "^1.4.2",
+    "llvm2": "^0.2.13",
+    "lodash": "^3.10.1"
+  }
+}
