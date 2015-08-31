@@ -1,9 +1,24 @@
 _     = require("lodash")
 async = require("async")
 llvm  = require("llvm2")
+fs    = require("fs")
 
-tokenizer = (stream) ->
-  () ->
+createTokenizer = require("./tokenizer")
+
+testFileName = './examples/basic.mko'
 
 
-fs.open('./examples/basic.mko', 'r', tokenizer)
+
+# Simplify opening files
+createReadStream = (fileName, cb) ->
+  do (fileName, cb) ->
+    stream = fs.createReadStream(fileName, flags:'r', encoding:'utf8', autoClose:true)
+    stream.on('data', (chunk) -> cb(null, chunk))
+    stream.on('end', () -> cb(null, [null]))
+    stream.on('error', (err) -> cb(err, null))
+
+
+createReadStream(testFileName, createTokenizer((err, token) ->
+  console.log(token)
+))
+
