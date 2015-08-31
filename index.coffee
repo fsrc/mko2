@@ -1,6 +1,6 @@
 _     = require("lodash")
 async = require("async")
-#llvm  = require("llvm2")
+llvm  = require("llvm2")
 fs    = require("fs")
 
 createTokenizer = require("./tokenizer")
