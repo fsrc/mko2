@@ -2,54 +2,54 @@ _     = require("lodash")
 
 # Create the tokenizer, we need a state to manage this algorithm
 createTokenizer = (cb) ->
-  # Define what makes different tokens
-  isDEL   = (c) -> _.contains(['(',')'], c)
-  isSPACE = (c) -> _.contains([' ', '\t'], c)
-  isCOM   = (c) -> _.contains(['#'], c)
-  isEOL   = (c) -> _.contains(['\n'], c)
-  isEOF   = (c) -> c == null
-  #isIDENT = (c) -> not isDEL(c) and not isSPACE(c) and not isCOM(c) and not isEOL(c) and not isEOF(c)
+  TOK =
+    DEL: # Delimiters
+      id:"DEL"
+      def:(c) -> _.contains(['(',')'], c)
+      end:[]
+    EOL: # End Of Line
+      id:"EOL"
+      def:(c) -> _.contains(['\n'], c)
+      end:[]
+    EOF: # End Of File
+      id:"EOF"
+      def:(c) -> c == null
+      end:[]
+    COM: # Comment
+      id:"COM"
+      def:(c) -> _.contains(['#'], c)
+    SPACE: # Blank space
+      id:"SPACE"
+      def:(c) -> _.contains([' ', '\t'], c)
+    IDENT: # Identifier
+      id:"IDENT"
 
-  classify = (c) ->
-    return TOK_DEL   if isDEL(c)
-    return TOK_SPACE if isSPACE(c)
-    return TOK_EOL   if isEOL(c)
-    return TOK_COM   if isCOM(c)
-    return TOK_EOF   if isEOF(c)
-    return TOK_IDENT
+  TOK.COM.end   = [TOK.EOL.id, TOK.EOF.id]
+  TOK.IDENT.end = [TOK.DEL.id, TOK.EOL.id, TOK.EOF.id, TOK.SPACE.id]
+  TOK.SPACE.end = [TOK.DEL.id, TOK.EOL.id, TOK.EOF.id, TOK.COM.id, TOK.IDENT.id]
+  TOK.IDENT.def = (c) ->
+    not TOK.DEL.def(c) and
+    not TOK.SPACE.def(c) and
+    not TOK.COM.def(c) and
+    not TOK.EOL.def(c) and
+    not TOK.EOF.def(c)
 
-  # Name tokens
-  TOK_DEL   = "DEL"
-  TOK_SPACE = "SPACE"
-  TOK_COM   = "COM"
-  TOK_EOL   = "EOL"
-  TOK_EOF   = "EOF"
-  TOK_IDENT = "IDENT"
-
-  TOK_DEL_END   = []
-  TOK_SPACE_END = [TOK_DEL, TOK_EOL, TOK_EOF, TOK_COM, TOK_IDENT]
-  TOK_EOL_END   = []
-  TOK_EOF_END   = []
-  TOK_COM_END   = [TOK_EOL, TOK_EOF]
-  TOK_IDENT_END = [TOK_DEL, TOK_EOL, TOK_EOF, TOK_SPACE]
-
-
+  classify = (c) -> _.find(TOK, (def, name) -> def.def(c))
+  #
   # Helper functions that manipulate a token
-  createToken = (type, data, untilType, line, column) ->
+  createToken = (type, data, line, column) ->
     type   : type
     data   : data
     line   : line
     column : column
     length : data?.length ? 0
-    untilType : untilType
 
   continueToken = (token, data) ->
     type   : token.type
     data   : token.data + data
     line   : token.line
     column : token.column
-    length : token.length + data.length
-    untilType : token.untilType
+    length : token.length + (data?.length ? 0)
 
   endToken = (token) ->
     type   : token.type
@@ -57,36 +57,43 @@ createTokenizer = (cb) ->
     line   : token.line
     column : token.column
     length : token.length
-    untilType : token.untilType
 
   tokenize = (state, chunk, cb) ->
     _.reduce(chunk, (state, char) ->
-      type = classify(char)
+      type = classify(char).id
 
-      if state.token? and not _.contains(state.token.untilType, type)
+      if state.token? and not _.contains(TOK[state.token.type].end, type)
         state.token = continueToken(state.token, char)
       else
         if state.token?
           cb(null, endToken(state.token))
           state.token = null
 
-        if type == TOK_DEL
-          cb(null, createToken(type, char, TOK_DEL_END, state.line, state.column))
+        if type == TOK.DEL.id
+          cb(null, createToken(type, char, state.line, state.column))
 
-        else if type == TOK_SPACE
-          state.token = createToken(type, char, TOK_SPACE_END, state.line, state.column)
+        else if type == TOK.SPACE.id
+          state.token = createToken(type, char, state.line, state.column)
 
-        else if type == TOK_COM
-          state.token = createToken(type, char, TOK_COM_END, state.line, state.column)
+        else if type == TOK.COM.id
+          state.token = createToken(type, char, state.line, state.column)
 
-        else if type == TOK_EOL
-          cb(null, createToken(type, char, TOK_EOL_END, state.line, state.column))
+        else if type == TOK.EOL.id
+          cb(null, createToken(type, char, state.line, state.column))
+          # Add one to the lines
+          state.line += 1
+          # Reset column to zero, taking into account the increase just
+          # before end of loop
+          state.column = 0
 
-        else if type == TOK_EOF
-          cb(null, createToken(type, char, TOK_EOF_END, state.line, state.column))
+        else if type == TOK.EOF.id
+          cb(null, createToken(type, char, state.line, state.column))
 
         else
-          state.token = createToken(type, char, TOK_IDENT_END, state.line, state.column)
+          state.token = createToken(type, char, state.line, state.column)
+
+      # Always increase the column position
+      state.column += 1
 
       # Make sure we return state
       state

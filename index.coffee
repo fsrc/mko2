@@ -1,6 +1,6 @@
 _     = require("lodash")
 async = require("async")
-llvm  = require("llvm2")
+#llvm  = require("llvm2")
 fs    = require("fs")
 
 createTokenizer = require("./tokenizer")
@@ -19,6 +19,9 @@ createReadStream = (fileName, cb) ->
 
 
 createReadStream(testFileName, createTokenizer((err, token) ->
-  console.log(token)
+  if err?
+    console.dir(err)
+  else
+    console.log(token)
 ))
 
