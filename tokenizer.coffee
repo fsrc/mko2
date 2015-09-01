@@ -1,38 +1,8 @@
 _     = require("lodash")
+TOK   = require("./tokens")
 
 # Create the tokenizer, we need a state to manage this algorithm
 createTokenizer = (cb) ->
-  TOK =
-    DEL: # Delimiters
-      id:"DEL"
-      def:(c) -> _.contains(['(',')'], c)
-      end:[]
-    EOL: # End Of Line
-      id:"EOL"
-      def:(c) -> _.contains(['\n'], c)
-      end:[]
-    EOF: # End Of File
-      id:"EOF"
-      def:(c) -> c == null
-      end:[]
-    COM: # Comment
-      id:"COM"
-      def:(c) -> _.contains(['#'], c)
-    SPACE: # Blank space
-      id:"SPACE"
-      def:(c) -> _.contains([' ', '\t'], c)
-    IDENT: # Identifier
-      id:"IDENT"
-
-  TOK.COM.end   = [TOK.EOL.id, TOK.EOF.id]
-  TOK.IDENT.end = [TOK.DEL.id, TOK.EOL.id, TOK.EOF.id, TOK.SPACE.id]
-  TOK.SPACE.end = [TOK.DEL.id, TOK.EOL.id, TOK.EOF.id, TOK.COM.id, TOK.IDENT.id]
-  TOK.IDENT.def = (c) ->
-    not TOK.DEL.def(c) and
-    not TOK.SPACE.def(c) and
-    not TOK.COM.def(c) and
-    not TOK.EOL.def(c) and
-    not TOK.EOF.def(c)
 
   classify = (c) -> _.find(TOK, (def, name) -> def.def(c))
   #
@@ -62,38 +32,68 @@ createTokenizer = (cb) ->
     _.reduce(chunk, (state, char) ->
       type = classify(char).id
 
-      if state.token? and not _.contains(TOK[state.token.type].end, type)
+      # Helper function that tests if this is the end
+      # of the state token
+      isEnding = (stateType, currType, char) ->
+        endsWith = TOK[stateType].end
+        # If we don't have any ends with characters
+        # make sure we only keep going while getting valid
+        # characters
+        if _.isEmpty(endsWith)
+          !TOK[stateType].def(char)
+        else
+          # Otherwise we check the endsWith characters
+          _.contains(endsWith, currType)
+
+      # If we have a state token and it doesn't end with what we
+      # character we just got
+      if state.token? and not isEnding(state.token.type, type, char)
+        # Continue build that token
         state.token = continueToken(state.token, char)
+
       else
+        # If we got the end char of the current state.token
         if state.token?
-          cb(null, endToken(state.token))
-          state.token = null
+          # Is the token inclusive? Then eat the new char too
+          if TOK[state.token.type].incl
+            state.token = continueToken(state.token, char)
+            cb(null, endToken(state.token))
+            state.token = null
+          else
+            # Not inclusive, just end the token
+            cb(null, endToken(state.token))
+            state.token = null
 
-        if type == TOK.DEL.id
+        # Single char tokens
+        if _.contains([
+          TOK.EOL.id
+          TOK.EOF.id
+          TOK.DEL.id], type)
           cb(null, createToken(type, char, state.line, state.column))
 
-        else if type == TOK.SPACE.id
+        # Take care of the longer tokens
+        else if _.contains([
+          TOK.SPACE.id,
+          TOK.COM.id,
+          TOK.INT.id,
+          TOK.NUM.id,
+          TOK.STR.id], type)
+
           state.token = createToken(type, char, state.line, state.column)
 
-        else if type == TOK.COM.id
-          state.token = createToken(type, char, state.line, state.column)
-
-        else if type == TOK.EOL.id
-          cb(null, createToken(type, char, state.line, state.column))
-          # Add one to the lines
-          state.line += 1
-          # Reset column to zero, taking into account the increase just
-          # before end of loop
-          state.column = 0
-
-        else if type == TOK.EOF.id
-          cb(null, createToken(type, char, state.line, state.column))
-
+        # Identifier token
         else
           state.token = createToken(type, char, state.line, state.column)
 
-      # Always increase the column position
-      state.column += 1
+      if type == TOK.EOL.id
+        # Add one to the lines
+        state.line += 1
+        # Reset column to zero, taking into account the increase just
+        # before end of loop
+        state.column = 1
+      else
+        # Always increase the column position
+        state.column += 1
 
       # Make sure we return state
       state
