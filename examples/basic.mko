@@ -1,4 +1,3 @@
-(int my-var 10.0)
-;(str my-str "Hello")
-
-(str aa (a (b)(c)(c)(d)(e (a(b(c))))add my-var 20))
+(fun my-fun ((int a) (int b))
+     (add a b))
+(my-fun 10 20)
