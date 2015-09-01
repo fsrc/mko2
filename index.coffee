@@ -25,9 +25,9 @@ EXPR =
       column:column
     args: []
     ends: null
-  add : (expr, identifier, line, column) ->
+  add : (expr, value, type, line, column) ->
     starts: expr.starts
-    args: expr.args.concat(ident:identifier, line:line, column:column)
+    args: expr.args.concat(value:value, type:type, line:line, column:column)
     ends: null
   end : (expr, line, column) ->
     starts: expr.starts
@@ -41,18 +41,33 @@ createParser = (cb) ->
   do (cb) ->
     state = { expr: null, feeder: null }
     feeder = (token) ->
+      # If we have a subparser that needs to be feed
+      # then we feed that instead of the parent.
       if state.feeder?
-        feeder(token)
+        state.feeder(token)
       else
         if token.data == "("
           if not state.expr?
             state.expr = EXPR.create(token.line, token.column)
           else
+            # Create a new subparser to take care of the
+            # subexpression
             state.feeder = createParser((err, subexpr) ->
+              # When the expression is formulated
               if err?
                 cb(err)
-              EXPR.add(state.expr, subexpr)
+              else
+                # We extend our current hiearky with the new expression
+                state.expr = EXPR.add(
+                  state.expr,
+                  subexpr,
+                  "EXPR",
+                  subexpr.starts.line,
+                  subexpr.starts.column)
+              # Make sure we don't feed the subparser anything else
               state.feeder = null)
+
+            # Feed it with the token that created it
             state.feeder(token)
 
         else if token.data == ")"
@@ -67,7 +82,7 @@ createParser = (cb) ->
           if not state.expr?
             cb(msg:"Error: Identifier outside of expression", token:token)
           else
-            state.expr = EXPR.add(state.expr, token.data, token.line, token.column)
+            state.expr = EXPR.add(state.expr, token.data, token.type, token.line, token.column)
 
     feeder
 

@@ -1,4 +1,4 @@
 (int my-var 10.0)
 ;(str my-str "Hello")
 
-(str aa "aa")
+(str aa (add my-var 20))
