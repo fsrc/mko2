@@ -37,6 +37,22 @@ isEnding = (stateType, currType, char) ->
     # Otherwise we check the endsWith characters
     _.contains(endsWith, currType)
 
+# Tests if char is the end of the state token
+# but also the next token in an extended token
+isExtending = (stateType, currType, char) ->
+  if not TOK[stateType].exto?
+    false
+  else
+    endsWith = TOK[stateType].end
+    # If we don't have any ends with characters
+    # make sure we only keep going while getting valid
+    # characters
+    if _.isEmpty(endsWith)
+      !TOK[stateType].def(char) and
+        TOK[TOK[stateType].exto].def(char)
+    else
+      false
+
 # Figure out what sort of token to create. Then create that.
 createTokenForType = (type, char, line, column, cb) ->
   # Single char tokens
@@ -57,7 +73,14 @@ tokenize = (state, chunk, cb) ->
   _.reduce(chunk, (state, char) ->
     type = classify(char).id
 
-    # If we have a state token and it doesn't end with what
+    # Make sure that any type that can be identified as
+    # more then one type at first sight, gets reevaluated
+    # as we build the token. For instance a NUM is transformed
+    # when we find a . in the digits.
+    if state.token? and isExtending(state.token.type, type, char)
+      state.token.type = TOK[state.token.type].exto
+
+    # If we have a state token and it doesn't end with what we
     # character we just got
     if state.token? and not isEnding(state.token.type, type, char)
       # Continue build that token

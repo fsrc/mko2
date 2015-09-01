@@ -6,43 +6,52 @@ TOK =
     def:(c) -> _.contains(['(',')'], c)
     end:[]
     incl:false
+    exto:null
   EOL: # End Of Line
     id:"EOL"
     def:(c) -> _.contains(['\n'], c)
     end:[]
     incl:false
+    exto:null
   EOF: # End Of File
     id:"EOF"
     def:(c) -> c == null
     end:[]
     incl:false
+    exto:null
   INT: # Integers
     id:"INT"
     def:(c) -> _.contains(['0','1','2','3','4','5',
                            '6','7','8','9'], c)
     incl:false
     end:[]
+    exto:"NUM"
   NUM: # Decimals
     id: "NUM"
     def: (c) -> _.contains(['0','1','2','3','4',
                             '5','6','7','8','9','.'], c)
     incl:false
     end:[]
+    exto:null
   COM: # Comment
     id:"COM"
     def:(c) -> _.contains([';'], c)
     incl:false
+    exto:null
   SPACE: # Blank space
     id:"SPACE"
     def:(c) -> _.contains([' ', '\t'], c)
     incl:false
+    exto:null
   STR: # Strings
     id: "STR"
     def: (c) -> c == '"'
     incl:true # Eats end token
+    exto:null
   IDENT: # Identifier
     id:"IDENT"
     incl:false
+    exto:null
 
 TOK.COM.end   = [TOK.EOL.id, TOK.EOF.id]
 TOK.STR.end   = [TOK.EOF.id, TOK.STR.id]
