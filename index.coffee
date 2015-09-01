@@ -72,17 +72,21 @@ createParser = (cb) ->
     feeder
 
 feed = createParser((err, expr) ->
-  console.log("Err:")
-  console.dir(err)
+  if err?
+    console.log("Err:")
+    console.dir(err)
   console.log("Expr:")
-  console.dir(expr))
+  console.dir(expr)
+  )
 
 createReadStream(testFileName, createTokenizer((err, token) ->
   if err?
     console.dir(err)
   else
-    console.dir(token)
-    if token.type != TOK.SPACE.id and token.type != TOK.EOL.id and token.type != TOK.EOF.id
+    if token.type != TOK.SPACE.id and
+    token.type != TOK.EOL.id and
+    token.type != TOK.EOF.id and
+    token.type != TOK.COM.id
       feed(token)
 ))
 
