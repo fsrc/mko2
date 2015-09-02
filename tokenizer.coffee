@@ -24,7 +24,7 @@ createTokenizer = (TOK, cb) ->
 
     endToken = (token) ->
       type   : token.type
-      data   : token.data
+      data   : TOK[token.type].post(token.data) # Post process token
       line   : token.line
       column : token.column
       length : token.length

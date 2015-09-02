@@ -20,6 +20,9 @@ defIDENT = (c) ->
   not defEOL(c) and
   not defEOF(c)
 
+postIdentity = (str) -> str
+postSTR = (str) -> str.replace(/^"(.+(?="$))"$/, '$1')
+
 
 ##################################################################
 # Rules Explanation
@@ -44,6 +47,7 @@ def =
     exto : null
     onec : true
     use  : true
+    post : postIdentity
   EOL    : # End Of Line
     def  : defEOL
     end  : []
@@ -51,6 +55,7 @@ def =
     exto : null
     onec : true
     use  : false
+    post : postIdentity
   EOF    : # End Of File
     def  : defEOF
     end  : []
@@ -58,6 +63,7 @@ def =
     exto : null
     onec : true
     use  : false
+    post : postIdentity
   INT    : # Integers
     def  : defINT
     incl : false
@@ -65,6 +71,7 @@ def =
     exto : "NUM"
     onec : false
     use  : true
+    post : postIdentity
   NUM    : # Decimals
     def  : defNUM
     incl : false
@@ -72,6 +79,7 @@ def =
     exto : null
     onec : false
     use  : true
+    post : postIdentity
   COM    : # Comment
     def  : defCOM
     incl : false
@@ -79,6 +87,7 @@ def =
     exto : null
     onec : false
     use  : false
+    post : postIdentity
   SPACE  : # Blank space
     def  : defSPACE
     incl : false
@@ -86,13 +95,15 @@ def =
     exto : null
     onec : false
     use  : false
+    post : postIdentity
   STR    : # Strings
     def  : defSTR
     incl : true # Eats end token
-    end  : ["EOL", "EOF"]
+    end  : ["STR", "EOF"]
     exto : null
     onec : false
     use  : true
+    post : postSTR
   IDENT  : # Identifier
     def  : defIDENT
     incl : false
@@ -100,6 +111,7 @@ def =
     exto : null
     onec : false
     use  : true
+    post : postIdentity
 
 
 
@@ -109,7 +121,8 @@ TOK = _.mapValues(def, (value, key) ->
   def:value.def
   end:value.end
   incl:value.incl
-  exto:value.exto)
+  exto:value.exto
+  post:value.post)
 
 TOK.ONE_CHAR_TOKENS = _(def)
   .map((value, key) -> id:key, onec:value.onec)
@@ -131,3 +144,4 @@ TOK.USELESS_TOKENS = _(def)
 
 
 module.exports = TOK
+
