@@ -1,5 +1,7 @@
 (require some-extension "./examples/included-file" )
 
-;(fun my-fun ((int a) (int b))
-     ;(add a b))
-;(my-fun 10 20)
+(fun my-fun (int argument-a
+             int argument-b)
+     (add argument-a argument-b))
+
+(my-fun 10 20)

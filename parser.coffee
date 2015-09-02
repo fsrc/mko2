@@ -1,6 +1,4 @@
-do_log = require("./util").log
-
-log = (texts...) -> do_log('parser', texts...)
+log = require("./util").logger(0, 'parser')
 
 # Helper functions to manage changing an expression object
 EXPR =
@@ -38,12 +36,12 @@ createParser = (cb) ->
     # The feeder function takes tokens and
     # emits completed expressions to cb
     feeder = (token) ->
-      log("got token", token)
+      log(20, "got token", token)
 
       # If we have a subparser that needs to be feed
       # then we feed that instead of the parent.
       if state.feeder?
-        log("in state")
+        log(20, "in state")
         state.feeder(token)
       else
         # Check if the token is a start token
@@ -51,10 +49,10 @@ createParser = (cb) ->
           # If we don't have an expression that we are
           # working on, we create a new one.
           if not state.expr?
-            log("creating state")
+            log(20, "creating state")
             state.expr = EXPR.create(token.line, token.column)
           else
-            log("continuing state")
+            log(20, "continuing state")
             # Turns out we already have an expression so we
             # create a new subparser to take care of the
             # subexpression
@@ -83,12 +81,12 @@ createParser = (cb) ->
         else if token.data == ")"
           # Problems
           if not state.expr?
-            log("error not balanced parenthesis")
+            log(0, "error not balanced parenthesis")
             cb(msg:"Error: Ending delimiter don't match a starting delimiter", token:token)
           # No problems, let's close the expression and emit the
           # result back to our owner.
           else
-            log("closing expression")
+            log(20, "closing expression")
             # Close it
             state.expr = EXPR.end(state.expr, token.line, token.column)
             # Emit result
