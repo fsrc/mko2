@@ -6,6 +6,7 @@ TOK = require("./tokens")
 createTokenizer = require("./tokenizer")
 createParser = require("./parser")
 codeGenerators = require("./code-generators")
+ast = require("./ast-manipulators")
 
 macros = {}
 user = {}
@@ -64,6 +65,11 @@ evalMacroRecur = (expr, cb) ->
         cb(null, expandedTail)
     )
 
+astForModuleDependency = (moduleName, line, column) ->
+  ast.createExpr(line, column, moduleName, [
+    ast.createExprArg("import", TOK.IDENT.id, line, column),
+    ast.createExprArg(moduleName, TOK.IDENT.id, line, column)
+  ])
 
 macros.require = (head, tail, cb) ->
   do (tail, cb) ->
@@ -82,7 +88,7 @@ macros.require = (head, tail, cb) ->
     # There are no expression sourrounding these expressions
     # This means that when all macros are evaluated, you
     # can perform code generation upon the evaluated result.
-    feed = createParser((err, expr) ->
+    feed = createParser(file.value, (err, expr) ->
       if err?
         log(0, "Err:", err)
         cb(err)
@@ -100,11 +106,14 @@ macros.require = (head, tail, cb) ->
     fop.createReadStream(fop.fullSourceFileNameForPath(file.value), createTokenizer(TOK, (err, token) ->
       if err?
         log(0, "Error in require macro", err)
+        cb(err)
       else
         if token.type == TOK.EOF.id
+          context.module.dump()
           context.module.writeBitcodeToFile(fop.fullBitcodeFileNameForPath(file.value))
           log(1, "Wrote bitcode to #{fop.fullBitcodeFileNameForPath(file.value)}")
           log(1, "EOF")
+          cb(null, astForModuleDependency(file.value, name.line, name.column))
         else if !_.contains(TOK.USELESS_TOKENS, token.type)
           feed(token)))
 
