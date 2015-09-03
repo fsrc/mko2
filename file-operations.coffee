@@ -1,5 +1,5 @@
 fs    = require("fs")
-log   = require("./util").logger(20, 'file-operations')
+log   = require("./util").logger(1, 'file-operations')
 
 DEFAULT_SRC_FILENAME_EXTENSION = ".mko"
 DEFAULT_BIN_FILENAME_EXTENSION = ".bc"

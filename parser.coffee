@@ -1,10 +1,10 @@
-log = require("./util").logger(0, 'parser')
+log = require("./util").logger(1, 'parser')
 ast = require("./ast-manipulators")
 
 
 # Construct a closure arond the parser
 createParser = (moduleName, cb) ->
-  log(0, moduleName, cb)
+  log(1, moduleName)
   do (moduleName, cb) ->
     # Keeps track of current expression and
     # subparser if we are nested

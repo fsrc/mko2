@@ -1,6 +1,6 @@
 _     = require("lodash")
 llvm  = require("llvm2")
-log   = require("./util").logger(20, 'code-generators')
+log   = require("./util").logger(1, 'code-generators')
 
 builder = new llvm.Builder()
 
@@ -8,19 +8,44 @@ generators = {}
 
 generators.export = (context, head, tail, cb) ->
 
+
 generators.call = (context, name, args, cb) ->
   log(10, "Call name: #{name.value}")
   log(20, args)
 
+  builder = new llvm.Builder()
+  builder.positionAtEnd(entry)
+
+
+typeTranslation =
+  int : llvm.Library.LLVMInt64Type
 
 generators.fun = (context, head, tail, cb) ->
-  name = _.head(tail)
-  arity = _(tail).tail().head()
-  body = _(tail).tail().tail().value()
+  rettype = _.head(tail)
+  name    = _(tail).tail().head()
+  arity   = _(tail).tail().tail().head()
+  body    = _(tail).tail().tail().value()
 
-  log(10, "Fun name: #{name.value}")
-  log(20, "Arity", arity)
+  log(10, "Fun name", name.value)
+  log(20, "Return", rettype.value)
+  log(20, "Arity", arity.value.args)
   log(20, "Body", body)
+  log(20, "Transformed", _(arity.value.args)
+    .chunk(2)
+    .map((arg) -> _.first(arg).value)
+    .value())
+
+  fn = context.module.addFunction(name.value, new llvm.FunctionType(
+    typeTranslation[rettype.value]()
+    _(arity.value.args)
+      .chunk(2)
+      .map((arg) -> typeTranslation[_.first(arg).value]())
+      .value()
+    false))
+
+  entry = fn.appendBasicBlock("entry")
+
+
 
 generate = (context, expr, cb) ->
   do (context, expr, cb) ->

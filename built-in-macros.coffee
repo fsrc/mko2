@@ -6,7 +6,7 @@ TOK = require("./tokens")
 createTokenizer = require("./tokenizer")
 createParser = require("./parser")
 codeGenerators = require("./code-generators")
-ast = require("./ast-manipulators")
+astTemplates = require("./ast-manipulators")
 
 macros = {}
 user = {}
@@ -65,11 +65,6 @@ evalMacroRecur = (expr, cb) ->
         cb(null, expandedTail)
     )
 
-astForModuleDependency = (moduleName, line, column) ->
-  ast.createExpr(line, column, moduleName, [
-    ast.createExprArg("import", TOK.IDENT.id, line, column),
-    ast.createExprArg(moduleName, TOK.IDENT.id, line, column)
-  ])
 
 macros.require = (head, tail, cb) ->
   do (tail, cb) ->
@@ -113,11 +108,12 @@ macros.require = (head, tail, cb) ->
           context.module.writeBitcodeToFile(fop.fullBitcodeFileNameForPath(file.value))
           log(1, "Wrote bitcode to #{fop.fullBitcodeFileNameForPath(file.value)}")
           log(1, "EOF")
-          cb(null, astForModuleDependency(file.value, name.line, name.column))
+          cb(null, astTemplates.astForModuleDependency(file.value, name.line, name.column))
         else if !_.contains(TOK.USELESS_TOKENS, token.type)
           feed(token)))
 
 
 module.exports =
+  evalMacro: evalMacro
   builtIn : macros
   user : user

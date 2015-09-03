@@ -1,0 +1,3 @@
+(fun int main (int a int b)
+     (console.log "Hello World!"))
+

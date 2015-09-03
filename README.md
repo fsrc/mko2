@@ -16,3 +16,4 @@ Macros should be inter callable. In other words, you could build an library of h
 Any code generator should compile to IR on compile time and be executed by the jitter.
 
 Mostly the same applies as with macros but there needs to be a API for LLVM in this context.
+
