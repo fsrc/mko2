@@ -35,9 +35,10 @@ bootstrap = (namespace, mainFile, cb) ->
             cb(err)
           else
             log(10, "Generating code")
-            codeGenerators.generate(context, evaluated, (err, binary) ->
-              log(0, err)
-              log(0, result))))
+            #codeGenerators.generate(context, evaluated, (err, binary) ->
+              #log(0, err)
+              #log(0, result))
+        ))
     ###### IMPORTANT ENDS ####
 
     fop.createReadStream(fop.fullSourceFileNameForPath(mainFile), createTokenizer(TOK, (err, token) ->

@@ -1,3 +1,63 @@
+;(require console)
 (fun int main (int a int b)
      (console.log "Hello World!"))
+
+; Native Primitive types
+; integer
+; integer-16
+; integer-32
+; integer-64
+; boolean
+; byte
+; string
+; number
+; list
+
+; Native Incomplete types
+; structure
+; lambda
+; generic
+
+; Any define have four parts
+((meta tags) what name (arguments))
+
+; Any expression have always at least one item. Any expression can
+; always begin with meta tags before first item.
+
+; Declare variable and lambda types
+((meta tags) structure-type my-struct-type     (int-type str-type num-type))
+((meta tags) lambda-type my-fun-type           (int-type str-type num-type))
+((meta tags) generics-type num-list-type       (list num-type             ))
+((meta tags) generics-type my-struct-list-type (list my-struct-type       ))
+((meta tags) generics-type my-fun-list-type    (list my-struct-type       ))
+
+; Declare value of type
+((meta tags) define my-struct-type object-name (10 "text" 0.1))
+((meta tags) define my-fun-type function-name ((arg-a arg-b)
+                                            (add arg-a arg-b)))
+((meta tags) define num-list num-list-name (0.1 0.2 0.3 0.4))
+((meta tags) define my-struct-list-type my-struct-list-name ((10 "first" 0.1)
+                                                         (20 "next" 0.2)))
+
+; Declare function
+((meta tags) define my-fun-type my-fun-name (my-string-arg my-num-arg)
+  ; Body
+  ((meta tags) generate-result-value of-int-type))
+
+; Special features - Implicit Overloading
+
+; Declare two types with the same name but different signatures
+((meta tags) lambda-type my-fun-type (int-type str-type num-type))
+((meta tags) lambda-type my-fun-type (int-type num-type))
+
+; Declare function for first signature
+((meta tags) define my-fun-type my-fun-name (my-string-arg my-num-arg)
+  ; Body
+  (generate-result-value of-int-type))
+
+; Declare function for second signature
+((meta tags) define my-fun-type my-fun-name (my-num-arg)
+  ; Body
+  (generate-result-value of-int-type))
+
 

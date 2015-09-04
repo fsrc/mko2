@@ -93,9 +93,10 @@ macros.require = (head, tail, cb) ->
           if err?
             cb(err)
           else
-            codeGenerators.generate(context, evaluated, (err, binary) ->
-              log(0, err)
-              log(0, result))))
+            #codeGenerators.generate(context, evaluated, (err, binary) ->
+              #log(0, err)
+              #log(0, result))
+        ))
     ###### IMPORTANT ENDS ####
 
     fop.createReadStream(fop.fullSourceFileNameForPath(file.value), createTokenizer(TOK, (err, token) ->
