@@ -1,9 +1,13 @@
 _     = require("lodash")
 
 # Create the tokenizer, we need a state to manage this algorithm
-createTokenizer = (TOK, cb) ->
+create = (TOK) ->
   # Create a state
-  do (TOK, cb) ->
+  do (TOK) ->
+    wrapper = {}
+    wrapper.onError = (fn) -> wrapper.error = fn ; wrapper
+    wrapper.onToken = (fn) -> wrapper.token = fn ; wrapper
+    wrapper.onEof   = (fn) -> wrapper.eof = fn ; wrapper
 
     classify = (c) -> _.find(TOK, (def, name) -> def.def(c))
     #
@@ -130,13 +134,16 @@ createTokenizer = (TOK, cb) ->
       token  : null
     }
 
-    # Function that is returned to the caller
-    (err, chunk) ->
-      if err?
-        cb(err)
-      else
-        # Feed the tokenizer and keep the state until
-        # next round
-        state = tokenize(state, chunk, cb)
+    wrapper.tokenize = (chunk) ->
+      # Feed the tokenizer and keep the state until
+      # next round
+      state = tokenize(state, chunk, (err, token) ->
+        if err?
+          wrapper.err(err)
+        else
+          wrapper.token(token))
 
-module.exports = createTokenizer
+    wrapper
+
+module.exports =
+  create:create

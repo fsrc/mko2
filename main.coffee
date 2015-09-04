@@ -1,22 +1,49 @@
 _               = require("lodash")
 log             = require("./util").logger(1, 'index')
-macros          = require("./built-in-macros")
 fop             = require("./file-operations")
 TOK             = require("./tokens")
-createTokenizer = require("./tokenizer")
-createParser    = require("./parser")
+tokenizer       = require("./tokenizer")
+parser          = require("./parser")
+macros          = require("./built-in-macros")
 codeGenerators  = require("./code-generators")
 astTemplates    = require("./ast-templates")
+
 
 rootNamespace = 'org.mko2.test'
 testFileName = './examples/main'
 
+loadConfig = (startPath, cb) ->
+  fop.findConfig(startPath, (err, configFile) ->
+    if err?
+      cb(err)
+    else
+      p = parser.create("config")
+        .onIsOpening((token) -> TOK.DEL.open(token.data))
+        .onIsClosing((token) -> TOK.DEL.close(token.data))
+        .onIsEof((token) -> token.type == TOK.EOF.id)
+        .onError(cb)
+        .onEof((block) -> cb(null, block))
+        .onExpression((expr) ->
+          macros.evalMacro(result.expr, (err, evaluated) ->
+            if err?
+              cb(err)
+            else
+              result.callback(null, evaluated)))
+
+      t = tokenizer.create(TOK)
+        .onError((err) -> cb(err))
+        .onToken(p.feed)
+
+      s = fop.createReadStream(configFile)
+        .onError((err) -> cb(err))
+        .onChunk((c) -> t.tokenize(c))
+        #.onEof(t.tokenize)
+  )
+
+
 bootstrap = (namespace, mainFile, cb) ->
   do (namespace, mainFile, cb) ->
     log(1, "Namespace: #{namespace} Filename: #{mainFile}")
-
-    # Create LLVM module
-    context = codeGenerators.context(namespace)
 
     # ##### IMPORTANT #####
     # This is the top level block expressions evaluator.
@@ -34,11 +61,7 @@ bootstrap = (namespace, mainFile, cb) ->
           if err?
             cb(err)
           else
-            log(10, "Generating code")
-            #codeGenerators.generate(context, evaluated, (err, binary) ->
-              #log(0, err)
-              #log(0, result))
-        ))
+            cb(null)))
     ###### IMPORTANT ENDS ####
 
     fop.createReadStream(fop.fullSourceFileNameForPath(mainFile), createTokenizer(TOK, (err, token) ->
@@ -47,17 +70,17 @@ bootstrap = (namespace, mainFile, cb) ->
         cb(err)
       else
         if token.type == TOK.EOF.id
-          context.module.dump()
-          context.module.writeBitcodeToFile(fop.fullBitcodeFileNameForPath(mainFile))
-          log(1, "Wrote bitcode to #{fop.fullBitcodeFileNameForPath(mainFile)}")
-          log(1, "EOF")
-          cb(null, astTemplates.astForModuleDependency(mainFile, 0, 0))
+          cb(null)
         else if !_.contains(TOK.USELESS_TOKENS, token.type)
           feed(token)))
 
 
 # Start compiling
-bootstrap(rootNamespace, testFileName, (err, result) ->
-  log("Error in main", err) if err?
-  log("Result from main", result) if result?)
-
+#bootstrap(rootNamespace, testFileName, (err, result) ->
+  #log("Error in main", err) if err?
+  #log("Result from main", result) if result?)
+loadConfig("./examples", (err, result) ->
+  if err?
+    console.log err
+  else
+    console.log result)

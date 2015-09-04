@@ -48,6 +48,9 @@ def =
     onec : true
     use  : true
     post : postIdentity
+    open : (c) -> c == '('
+    close: (c) -> c == ')'
+
   EOL    : # End Of Line
     def  : defEOL
     end  : []
@@ -62,7 +65,7 @@ def =
     incl : false
     exto : null
     onec : true
-    use  : false
+    use  : true
     post : postIdentity
   INT    : # Integers
     def  : defINT
@@ -122,7 +125,9 @@ TOK = _.mapValues(def, (value, key) ->
   end:value.end
   incl:value.incl
   exto:value.exto
-  post:value.post)
+  post:value.post
+  open:value.open
+  close:value.close)
 
 TOK.ONE_CHAR_TOKENS = _(def)
   .map((value, key) -> id:key, onec:value.onec)

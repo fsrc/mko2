@@ -1,0 +1,7 @@
+(config se.fsrc.example
+  (licence BSD)
+  (contributors (Fredrik Andersson)
+                (Sebastien Tregaro))
+  (entry-point main/main)
+  (dependencies
+    (fs "0.1.2")))
