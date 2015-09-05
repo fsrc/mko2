@@ -1,6 +1,12 @@
 # mko2
 The second generation of the mko language
 
+First generation of the compiler should be written in Coffee-Script on node with LLVM bindings.
+
+The Coffee-Script code should be written in such a way that it is easy to translate to mko. The goal is that the second generation of the compiler should first be compiled with the first generation of the compiler. Finaly the compiler should be compiled with it self.
+
+The language is inspired by lisp and node.js, obviously with touches of JavaScript. What sets it apart is no state manipulation allowed, static typing and macro support.
+
 # TODO
 ## compile time API
 There should be a compile time API that macros and code generators can use.
