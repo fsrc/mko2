@@ -1,5 +1,5 @@
 TOK = require("./tokens")
-ast = require("./ast-manipulators")
+ast = require("../lib/manipulators")
 
 astForModuleDependency = (moduleName, line, column) ->
   ast.createExpr(line, column, moduleName, [

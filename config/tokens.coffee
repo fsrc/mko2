@@ -141,11 +141,13 @@ TOK.LONG_TOKENS = _(def)
   .pluck("id")
   .value()
 
-TOK.USELESS_TOKENS = _(def)
+TOK.USEFUL_TOKEN_TYPES = _(def)
   .map((value, key) -> id:key, use:value.use)
-  .filter((value) -> !value.use)
+  .filter((value) -> value.use)
   .pluck("id")
   .value()
+
+TOK.isUseful = (type) -> _.contains(TOK.USEFUL_TOKEN_TYPES, type)
 
 
 module.exports = TOK

@@ -1,12 +1,5 @@
 _     = require("lodash")
-fop = require("./file-operations")
 log   = require("./util").logger(1, 'built-in-macros')
-
-TOK = require("./tokens")
-createTokenizer = require("./tokenizer")
-createParser = require("./parser")
-codeGenerators = require("./code-generators")
-astTemplates = require("./ast-manipulators")
 
 macros = {}
 user = {}
@@ -33,17 +26,41 @@ doEvalMacro = (head, tail, cb) ->
       cb("Trying to evaluate a macro that does not exist")
 
 
-evalMacro = (expr, cb) ->
-  do (expr, cb) ->
-    head = _.head(expr.args)
-    tail = _.tail(expr.args)
+create = () ->
+  do () ->
+    wrapper = {}
+    wrapper.onError     = (fn) -> wrapper.error = fn ; wrapper
+    wrapper.onEvaluated = (fn) -> wrapper.evaluated = fn ; wrapper
+    wrapper.onEof       = (fn) -> wrapper.eof = fn ; wrapper
+    wrapper.error       = (e) -> e
+    wrapper.evaluated   = (e) -> e
+    wrapper.eof         = (e) -> e
 
-    if isMacro(head)
-      doEvalMacro(head, tail, cb)
-    else
-      # If this expression isn't a macro. Then we pass it
-      # on to next phase. Which probably is code generation.
-      cb(null, expr)
+    block = []
+
+    wrapper.eval = (expr) ->
+      if not expr?
+        wrapper.eof(block)
+      else
+        head = _.head(expr.args)
+        tail = _.tail(expr.args)
+        if isMacro(head)
+          doEvalMacro(head, tail, (err, evaluated) ->
+            if err?
+              wrapper.error(err)
+            else
+              block.push(evaluated)
+              wrapper.evaluated(evaluated)
+          )
+        else
+          # If this expression isn't a macro. Then we pass it
+          # on to next phase. Which probably is code generation.
+          block.push(expr)
+          wrapper.evaluated(expr)
+    wrapper
+
+module.exports =
+  create: create
 
 evalMacroRecur = (expr, cb) ->
   do (expr, cb) ->
@@ -114,7 +131,3 @@ macros.require = (head, tail, cb) ->
           feed(token)))
 
 
-module.exports =
-  evalMacro: evalMacro
-  builtIn : macros
-  user : user

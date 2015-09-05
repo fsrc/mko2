@@ -8,6 +8,9 @@ create = (TOK) ->
     wrapper.onError = (fn) -> wrapper.error = fn ; wrapper
     wrapper.onToken = (fn) -> wrapper.token = fn ; wrapper
     wrapper.onEof   = (fn) -> wrapper.eof = fn ; wrapper
+    wrapper.error = (a) -> a
+    wrapper.token = (a) -> a
+    wrapper.eof = (a) -> a
 
     classify = (c) -> _.find(TOK, (def, name) -> def.def(c))
     #
@@ -78,7 +81,7 @@ create = (TOK) ->
 
     # The actual tokenizer routine
     tokenize = (state, chunk, cb) ->
-      _.reduce(chunk, (state, char) ->
+      _.reduce(chunk ? [null], (state, char) ->
         type = classify(char).id
 
         # Make sure that any type that can be identified as

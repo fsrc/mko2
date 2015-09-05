@@ -1,11 +1,11 @@
 _ = require("lodash")
-ast = require("./ast-manipulators")
+ast = require("./manipulators")
 
 
 # Construct a closure around the parser
 create = (moduleName) ->
   do (moduleName) ->
-    log = require("./util").logger(20, "parser[#{moduleName}]")
+    log = require("./util").logger(0, "parser[#{moduleName}]")
     # Keeps track of current expression and
     # subparser if we are nested
     state = { expr: null, feeder: null, block: [] }
@@ -19,6 +19,13 @@ create = (moduleName) ->
     wrapper.onIsOpening  = (fn) -> wrapper.isOpening = fn ; wrapper
     wrapper.onIsClosing  = (fn) -> wrapper.isClosing = fn ; wrapper
     wrapper.onIsEof      = (fn) -> wrapper.isEof = fn ; wrapper
+
+    wrapper.error = (a) -> a
+    wrapper.expression = (a) -> a
+    wrapper.eof = (a) -> a
+    wrapper.isOpening = (a) -> wrapper.error("isOpening must be implemented")
+    wrapper.isClosing = (a) -> wrapper.error("isClosing must be implemented")
+    wrapper.isEof = (a) -> wrapper.error("isEof must be implemented")
 
     wrapper.feed = (token) ->
       log(20, "got token", token)
@@ -51,7 +58,7 @@ create = (moduleName) ->
                 # Make sure we kill the subparser
                 state.feeder = null)
               .onExpression((subexpr) ->
-                log(0, subexpr)
+                log(20, subexpr)
                 # We extend our current hiearky with the new expression
                 state.expr = ast.addExprArg(
                   state.expr,
@@ -91,6 +98,7 @@ create = (moduleName) ->
         # End of file
         else if wrapper.isEof(token)
           log(20, "end of file")
+          wrapper.expression(null)
           wrapper.eof(state.block)
         # This is where we fill the expression with content
         else

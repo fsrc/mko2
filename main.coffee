@@ -1,12 +1,12 @@
 _               = require("lodash")
-log             = require("./util").logger(1, 'index')
-fop             = require("./file-operations")
-TOK             = require("./tokens")
-tokenizer       = require("./tokenizer")
-parser          = require("./parser")
-macros          = require("./built-in-macros")
-codeGenerators  = require("./code-generators")
-astTemplates    = require("./ast-templates")
+log             = require("./lib/util").logger(20, 'index')
+fop             = require("./lib/io")
+tokenizer       = require("./lib/tokenizer")
+parser          = require("./lib/parser")
+evaluator       = require("./lib/evaluator")
+codeGenerators  = require("./lib/generators")
+TOK             = require("./config/tokens")
+astTemplates    = require("./config/ast-templates")
 
 
 rootNamespace = 'org.mko2.test'
@@ -17,27 +17,31 @@ loadConfig = (startPath, cb) ->
     if err?
       cb(err)
     else
+      e = evaluator.create()
+        .onError((err) -> cb(err))
+        .onEvaluated((expr) ->
+          console.log("Evaluated line #{expr.starts.line}-#{expr.ends.line}")
+          console.log(JSON.stringify(expr))
+        )
+        .onEof((block) ->
+          console.log("End of File")
+          console.log(block)
+        )
       p = parser.create("config")
         .onIsOpening((token) -> TOK.DEL.open(token.data))
         .onIsClosing((token) -> TOK.DEL.close(token.data))
         .onIsEof((token) -> token.type == TOK.EOF.id)
         .onError(cb)
-        .onEof((block) -> cb(null, block))
-        .onExpression((expr) ->
-          macros.evalMacro(result.expr, (err, evaluated) ->
-            if err?
-              cb(err)
-            else
-              result.callback(null, evaluated)))
+        .onExpression((expr) -> e.eval(expr))
 
       t = tokenizer.create(TOK)
         .onError((err) -> cb(err))
-        .onToken(p.feed)
+        .onToken((token) -> p.feed(token) if TOK.isUseful(token.type))
 
       s = fop.createReadStream(configFile)
         .onError((err) -> cb(err))
         .onChunk((c) -> t.tokenize(c))
-        #.onEof(t.tokenize)
+        .onEof(() -> t.tokenize(null))
   )
 
 
