@@ -1,5 +1,5 @@
 # mko2
-The second generation of the mko language
+This is probably the 21:st attempt on this project.
 
 First generation of the compiler should be written in Coffee-Script on node with LLVM bindings.
 
