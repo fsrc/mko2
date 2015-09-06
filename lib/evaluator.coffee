@@ -50,8 +50,7 @@ create = () ->
               wrapper.error(err)
             else
               block.push(evaluated)
-              wrapper.evaluated(evaluated)
-          )
+              wrapper.evaluated(evaluated))
         else
           # If this expression isn't a macro. Then we pass it
           # on to next phase. Which probably is code generation.

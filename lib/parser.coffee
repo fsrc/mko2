@@ -60,17 +60,13 @@ create = (moduleName) ->
               .onExpression((subexpr) ->
                 log(20, subexpr)
                 # We extend our current hiearky with the new expression
-                state.expr = ast.addExprArg(
-                  state.expr,
-                  subexpr,
-                  "ast",
-                  subexpr.starts.line,
-                  subexpr.starts.column)
+                state.expr = ast.addSubExpression(state.expr, subexpr)
 
                 # Make sure we kill the subparser
                 state.feeder = null)
 
             # Feed the new parser with the first token - a parenthesis
+            log(20, token)
             state.feeder.feed(token)
 
         # If we are closing the expression
@@ -86,10 +82,7 @@ create = (moduleName) ->
             # Close it
             state.expr = ast.endExpr(state.expr, token.line, token.column)
 
-            # Emit result
-            wrapper.expression(state.expr)
-
-            state.block.push()
+            state.block.push(state.expr)
             # Bubble
             wrapper.expression(state.expr)
             # Make sure we clean up after us

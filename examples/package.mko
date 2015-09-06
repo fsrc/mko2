@@ -1,8 +1,13 @@
-(config se.fsrc.example
+(config
+  (name se.fsrc.example)
+
   (licence BSD)
-  (contributors (Fredrik Andersson)
-                (Sebastien Tregaro))
-  (entry-point main/main)
-  (dependencies
-    (fs "0.1.2")))
+
+  (versioning (version 0.1)
+              (build 0))
+
+  (repository github.com/fsrc/mko2)
+  (contributors (Fredrik Andersson))
+
+  (entry-point main/main))
 

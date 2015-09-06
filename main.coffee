@@ -12,27 +12,65 @@ astTemplates    = require("./config/ast-templates")
 rootNamespace = 'org.mko2.test'
 testFileName = './examples/main'
 
+pp = (obj, linesToPrint) ->
+  str = JSON.stringify(obj, null, 2)
+  if not linesToPrint?
+    str
+  else
+    lines = str.split('\n')
+    _.take(lines, linesToPrint)
+
+
+convert = {}
+
+convert.exprToObject = (expr) ->
+  do (expr) ->
+    obj = { }
+
+    if expr.type != "EXPR"
+      throw "Not valid expression"
+
+    head = _.head(expr.args)
+    if head.type == "EXPR"
+      throw "Can not use expression as identifier"
+
+    tail = _.tail(expr.args)
+    if tail.length > 1
+      obj[head.value] = _.map(tail, (arg) ->
+        if arg.type == "EXPR"
+          convert.exprToObject(arg)
+        else
+          arg.value)
+    else
+      arg = _.head(tail)
+      if arg.type == "EXPR"
+        obj[head.value] = convert.exprToObject(arg)
+      else
+        obj[head.value] = arg.value
+
+    obj
+
+convert.objectToExpr = (expr) ->
+
+convert.blockToObjects = (block) ->
+  _.map(block, (expr) ->
+    convert.exprToObject(expr))
+
+convert.objectsToBlock = (block) ->
+
+
 loadConfig = (startPath, cb) ->
   fop.findConfig(startPath, (err, configFile) ->
     if err?
       cb(err)
     else
-      e = evaluator.create()
-        .onError((err) -> cb(err))
-        .onEvaluated((expr) ->
-          console.log("Evaluated line #{expr.starts.line}-#{expr.ends.line}")
-          console.log(JSON.stringify(expr))
-        )
-        .onEof((block) ->
-          console.log("End of File")
-          console.log(block)
-        )
       p = parser.create("config")
         .onIsOpening((token) -> TOK.DEL.open(token.data))
         .onIsClosing((token) -> TOK.DEL.close(token.data))
         .onIsEof((token) -> token.type == TOK.EOF.id)
         .onError(cb)
-        .onExpression((expr) -> e.eval(expr))
+        .onEof((block) ->
+          cb(null, convert.blockToObjects(block)))
 
       t = tokenizer.create(TOK)
         .onError((err) -> cb(err))
@@ -41,8 +79,7 @@ loadConfig = (startPath, cb) ->
       s = fop.createReadStream(configFile)
         .onError((err) -> cb(err))
         .onChunk((c) -> t.tokenize(c))
-        .onEof(() -> t.tokenize(null))
-  )
+        .onEof(() -> t.tokenize(null)))
 
 
 bootstrap = (namespace, mainFile, cb) ->
@@ -87,4 +124,5 @@ loadConfig("./examples", (err, result) ->
   if err?
     console.log err
   else
-    console.log result)
+    console.log pp result
+)
