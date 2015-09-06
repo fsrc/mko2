@@ -1,4 +1,4 @@
-;(require console)
+;(module console org.mko.core/console)
 (fun int main (int a int b)
      (console.log "Hello World!"))
 

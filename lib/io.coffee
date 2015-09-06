@@ -7,8 +7,10 @@ DEFAULT_SRC_FILENAME_EXTENSION = ".mko"
 DEFAULT_BIN_FILENAME_EXTENSION = ".bc"
 PACKAGE_FILE = "package.mko"
 
-exports.fullSourceFileNameForPath = (fileName) -> fileName + DEFAULT_SRC_FILENAME_EXTENSION
-exports.fullBitcodeFileNameForPath = (fileName) -> fileName + DEFAULT_BIN_FILENAME_EXTENSION
+exports.fullSourceFileNameForPath = (rootPath, moduleName) ->
+  path.join(rootPath, moduleName) + DEFAULT_SRC_FILENAME_EXTENSION
+exports.fullBitcodeFileNameForPath = (rootPath, moduleName) ->
+  path.join(rootPath, moduleName) + DEFAULT_BIN_FILENAME_EXTENSION
 
 
 exports.createReadStream = (fileName) ->
@@ -30,6 +32,7 @@ exports.createReadStream = (fileName) ->
 
 cleanUpPath = (str) ->
   path.normalize(path.resolve(str)).replace(/[~\/]+$/, '')
+
 
 exports.findConfig = (path, cb) ->
   do (path, cb) ->
