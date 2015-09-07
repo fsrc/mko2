@@ -1,14 +1,11 @@
 path            = require("path")
 _               = require("lodash")
 
-astTemplates    = require("./config/ast-templates")
 TOK             = require("./config/tokens")
 
 log             = require("./lib/util").logger(20, 'main')
 data            = require("./lib/data")(TOK)
 modules         = require("./lib/modules")(TOK)
-evaluator       = require("./lib/evaluator")
-codeGenerators  = require("./lib/generators")
 
 
 rootNamespace = 'org.mko2.test'
@@ -22,13 +19,11 @@ pp = (obj, linesToPrint) ->
     lines = str.split('\n')
     _.take(lines, linesToPrint)
 
+
 bootstrap = (namespace, rootPath, entryModule, cb) ->
   do (namespace, entryModule, rootPath, cb) ->
-    #mainFile = path.join(rootPath, entryModule)
-
-    #log(1, "Namespace: #{namespace} root-path: #{rootPath} entry-module: #{entryModule} main-file: #{mainFile}")
-    modules.load(namespace, rootPath, entryModule, (err, result) ->
-      cb(err, result))
+    modules.load(namespace, rootPath, entryModule, (err, parsed) ->
+      cb(err, parsed))
 
 data.load("./examples", (err, result) ->
   if err?
@@ -41,6 +36,7 @@ data.load("./examples", (err, result) ->
     bootstrap(namespace, rootPath, entryModule, (err, result) ->
       if err?
         log(0, err)
-      log(0, pp result)
+      else
+        console.log pp result
     )
 )

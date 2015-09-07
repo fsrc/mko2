@@ -18,7 +18,8 @@ module.exports = (TOK) ->
 
         head = _.head(expr.args)
         if head.type == "EXPR"
-          throw "Can not use expression as identifier"
+          throw "Can not use expression as identifier [#{head.starts.line}:#{head.starts.column}-#{head.ends.line}:#{head.ends.column}]"
+
 
         tail = _.tail(expr.args)
         if tail.length > 1
