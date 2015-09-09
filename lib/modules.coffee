@@ -13,27 +13,7 @@ module.exports = (TOK) ->
       do (expr) ->
         obj = { }
 
-        if expr.type != "EXPR"
-          throw "Not valid expression"
 
-        head = _.head(expr.args)
-        if head.type == "EXPR"
-          console.dir expr
-          throw "Can not use expression as identifier [#{head.starts.line}:#{head.starts.column}-#{head.ends.line}:#{head.ends.column}]"
-
-        tail = _.tail(expr.args)
-        if tail.length > 1
-          obj[head.value] = _.merge(_.map(tail, (arg) ->
-            if arg.type == "EXPR"
-              functions.exprToObject(arg)
-            else
-              arg.value)...)
-        else
-          arg = _.head(tail)
-          if arg.type == "EXPR"
-            obj[head.value] = functions.exprToObject(arg)
-          else
-            obj[head.value] = arg.value
 
         obj
 

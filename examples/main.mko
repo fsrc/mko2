@@ -3,61 +3,68 @@
      ;(console.log "Hello World!"))
 
 ; Native Primitive types
-; integer
-; integer-16
-; integer-32
-; integer-64
-; boolean
-; byte
-; string
-; number
-; list
+; int-type
+; int16-type
+; int32-type
+; int64-type
+; bool-type
+; byte-type
+; str-type
+; num-type
+; list-type
+; gen-type
 
-; Native Incomplete types
-; structure
-; lambda
-; generic
+; A define is constructing a object based on a declaration
+; A declaration can be of following types
+;  structure
+;  lambda
+;  block
 
-; Any define have four parts
-((meta tags) what name (arguments))
+; Don't be alarmed about the verbosity of the code bellow. This is the lowest level and should not be used in every day programming. In the future Macros will be the interface to the programmer, and the Macros will hide all of this making declarations and definitions intuitiv and simple.
 
-; Any expression have always at least one item. Any expression can
-; always begin with meta tags before first item.
+; Lets declare a struct
+; META       KEYWORD   TYPE-NAME       TYPES IN STRUCT
+((meta tags) structure my-struct-type (int-type str-type num-type))
 
-; Declare variable and lambda types
-((meta tags) define my-struct-type      (structure-type int-type str-type num-type))
-((meta tags) define my-fun-type         (lambda-type int-type str-type num-type))
-((meta tags) define num-list-type       (generics-type list num-type             ))
-((meta tags) define my-struct-list-type (generics-type list my-struct-type       ))
-((meta tags) define my-fun-list-type    (generics-type list my-struct-type       ))
+; Lets define a variable of that type
+; META       KEYWORD TYPE-NAME      VAR-NAME  VALUES TO INSERT
+((meta tags) define  my-struct-type my-var   (1 "hello", 10.2))
 
-; Declare value of type
-((meta tags) define object-name (my-struct-type 10 "text" 0.1))
-((meta tags) define function-name (my-fun-type (arg-a arg-b)
-                                               (add arg-a arg-b)))
-((meta tags) define num-list-name (num-list 0.1 0.2 0.3 0.4))
-((meta tags) define my-struct-list-name (my-struct-list-type (10 "first" 0.1)
-                                                             (20 "next" 0.2)))
+; Lets declare a function type
+; META       KEYWORD TYPE-NAME    RETURN   ARG-A    ARG-B
+((meta tags) lambda  my-fun-type (num-type num-type num-type))
 
-; Declare function
-((meta tags) define my-fun-name (my-fun-type my-string-arg my-num-arg)
-  ; Body
-  ((meta tags) generate-result-value of-int-type))
+; META       KEYWORD TYPE-NAME   FUNCTION NAME   ARG-A ARG-B
+((meta tags) define  my-fun-type my-fun         (arg-a arg-b)
+;                                                KEYWORD LABEL
+                                                (block   entry (; META       EXPRESSION
+                                                                ;            FUN ARG   ARG
+                                                                ((meta tags) add arg-a arg-b))))
 
-; Special features - Implicit Overloading
+; Generic types with gen-type
+; A generic type is unknown until we compile the code. Let's create an example based upon the previous example that adds two numbers. Add works on any type of integers and number. The compiler only needs to know what the add function can handle to decide what my-fun would allow.
 
-; Declare two types with the same name but different signatures
-((meta tags) define my-fun-type (lambda-type int-type str-type num-type))
-((meta tags) define my-fun-type (lambda-type int-type num-type))
+; Lets declare a function type
+; META       KEYWORD TYPE-NAME    RETURN   ARG-A    ARG-B
+((meta tags) lambda  my-fun-type (gen-type gen-type gen-type))
 
-; Declare function for first signature
-((meta tags) define my-fun-name (my-fun-type my-string-arg my-num-arg)
-  ; Body
-  (generate-result-value of-int-type))
+; Define it
+; META       KEYWORD TYPE-NAME   FUNCTION NAME   ARG-A ARG-B
+((meta tags) define  my-fun-type my-fun         (arg-a arg-b)
+;                                                KEYWORD LABEL
+                                                (block   entry (; META       EXPRESSION
+                                                                ;            FUN ARG   ARG
+                                                                ((meta tags) add arg-a arg-b))))
 
-; Declare function for second signature
-((meta tags) define my-fun-name (my-fun-type my-num-arg)
-  ; Body
-  (generate-result-value of-int-type))
+; Now you can call my-fun with any arguments that add can handle. How is the add function declared then?
 
+; Lets declare a function type
+; META       KEYWORD TYPE-NAME    RETURN   ARG-A    ARG-B
+((meta tags) lambda  my-fun-type (byte-type byte-type byte-type))
+((meta tags) lambda  my-fun-type (int16-type int16-type int16-type))
+((meta tags) lambda  my-fun-type (int32-type int32-type int32-type))
+((meta tags) lambda  my-fun-type (int64-type int64-type int64-type))
+((meta tags) lambda  my-fun-type (num-type num-type num-type))
 
+; You can imagine declarations where two 16-bit int becomes a 32 bit and so on
+((meta tags) lambda  my-fun-type (int32-type int16-type int16-type))
