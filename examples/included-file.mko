@@ -1,5 +1,0 @@
-(fun test-function ()
-  (console.log "no arguments"))
-
-(export test-function)
-

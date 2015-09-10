@@ -1,0 +1,75 @@
+; Native Primitive types
+; int-type
+; int16-type
+; int32-type
+; int64-type
+; bool-type
+; byte-type
+; str-type
+; num-type
+; list-type
+; gen-type
+
+; A define is constructing a object based on a declaration
+; A declaration can be of following types
+;  structure
+;  function
+;  lambda
+;  block
+
+; Don't be alarmed about the verbosity of the code bellow. This is the lowest level and should not be used in every day programming. In the future Macros will be the interface to the programmer, and the Macros will hide all of this making declarations and definitions intuitiv and simple.
+
+; Note that any expression can be prepended with a meta tag expression, if you wish, like so:
+((meta tag) my-function (arg-a arg-b))
+
+; Lets declare a struct
+; KEYWORD   TYPE-NAME       TYPES IN STRUCT
+(structure my-struct-type (int-type str-type num-type))
+
+; Lets define a variable of that type
+; KEYWORD TYPE-NAME      VAR-NAME  VALUES TO INSERT
+(define   my-struct-type my-var   (1 "hello", 10.2))
+
+; Type-matching should resolv the correct type based on input
+(define my-var (1, "Hello", 0.2))
+
+; Lets declare a function type
+; KEYWORD TYPE-NAME    RETURN   ARG-A    ARG-B
+(function my-fun-type (num-type num-type num-type))
+
+; KEYWORD TYPE-NAME   FUNCTION NAME   ARG-A ARG-B
+(define   my-fun-type my-fun         (arg-a arg-b)
+;                                                KEYWORD LABEL
+                                                (block   entry (;FUN ARG   ARG
+                                                                (add arg-a arg-b))))
+
+; Generic types with gen-type and type matching
+; A generic type is unknown until we compile the code. Let's create an example based upon the previous example that adds two numbers. Add works on any type of integers and number. The compiler only needs to know what the add function can handle to decide what my-fun would allow.
+
+; Lets declare a function type
+; KEYWORD TYPE-NAME    RETURN   ARG-A    ARG-B
+(function my-fun-type (gen-type gen-type gen-type))
+
+; Define it
+; KEYWORD TYPE-NAME   FUNCTION NAME   ARG-A ARG-B
+(define   my-fun-type my-fun         (arg-a arg-b)
+;                                                KEYWORD LABEL
+                                                (block   entry (;FUN ARG   ARG
+                                                                (add arg-a arg-b))))
+
+; Now you can call my-fun with any arguments that add can handle.
+(my-fun (1 2))
+
+; How is the add function declared then?
+
+; Lets declare a function type
+; KEYWORD TYPE-NAME    RETURN   ARG-A    ARG-B
+(function my-fun-type (byte-type byte-type byte-type))
+(function my-fun-type (int16-type int16-type int16-type))
+(function my-fun-type (int32-type int32-type int32-type))
+(function my-fun-type (int64-type int64-type int64-type))
+(function my-fun-type (num-type num-type num-type))
+
+; You can imagine declarations where two 16-bit int becomes a 32 bit and so on
+(function my-fun-type (int32-type int16-type int16-type))
+

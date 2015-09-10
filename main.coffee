@@ -1,23 +1,16 @@
-path            = require("path")
-_               = require("lodash")
+path    = require("path")
+_       = require("lodash")
 
-TOK             = require("./config/tokens")
+TOK     = require("./config/tokens")
 
-log             = require("./lib/util").logger(20, 'main')
-data            = require("./lib/data")(TOK)
-modules         = require("./lib/modules")(TOK)
+log     = require("./lib/util").logger(20, 'main')
+pp      = require("./lib/util").pp
+data    = require("./lib/data")(TOK)
+modules = require("./lib/modules")(TOK)
 
 
 rootNamespace = 'org.mko2.test'
-testFileName = './examples/main'
 
-pp = (obj, linesToPrint) ->
-  str = JSON.stringify(obj, null, 2)
-  if not linesToPrint?
-    str
-  else
-    lines = str.split('\n')
-    _.take(lines, linesToPrint)
 
 
 bootstrap = (namespace, rootPath, entryModule, cb) ->

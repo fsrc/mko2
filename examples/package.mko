@@ -9,5 +9,5 @@
   (repository github.com/fsrc/mko2)
   (contributors (Fredrik Andersson))
 
-  (entry-module main))
+  (entry-module simple))
 
