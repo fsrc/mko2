@@ -1,30 +1,39 @@
 _     = require("lodash")
 llvm  = require("llvm2")
 
-log   = require("./util").logger(20, 'llvm')
+log   = require("./util").logger(0, 'llvm')
 pp    = require("./util").pp
 strip = require("./util").strip
 
+# ######################################################################
+# Mapping of types
 typeMap =
   "int-type" : llvm.Library.LLVMInt64Type
   "byte-type" : llvm.Library.LLVMInt8Type
+  "str-type" : llvm.Library.LLVMInt8Type
 
+# ######################################################################
+# Mapping of constants
 constants =
   INT : (value) ->
     llvm.Library.LLVMConstInt(
       typeMap["int-type"](),
       parseInt(value),
       false)
+  STR : (value) ->
+    throw "Not implemented"
 
+# ######################################################################
+# Helper that throws exception if condition isn't truthy
 ensureExpr = (expr, truthy, msg) ->
   if not truthy
     console.log expr
     throw msg
 
-builtIn = {}
-builtIn.add = (moduleState, expr) ->
-  ensureExpr(expr, moduleState.currentBuilder?, "Call not inside a block")
-
+# ######################################################################
+# Helper function to extract a variable or function argument
+# so that it can be passed on to a function call or operator
+buildLLVMArguments = (moduleState, expr) ->
   fnargs = _.pluck(moduleState.currentFunction.functionArgs.args, 'value')
   fnvars = moduleState.currentFunction.functionVars
 
@@ -35,14 +44,30 @@ builtIn.add = (moduleState, expr) ->
 
     # if arg isn't an expression but an variable
     else if arg.type == 'IDENT'
-      fnargindex = _.indexOf(fnargs, arg.value)
-      ensureExpr(expr, fnargindex > -1, "Function does not contain variable")
-      moduleState.currentFunction.llvmFunction.getParam(fnargindex)
+      # Look at arguments first
+      if fnargindex = _.indexOf(fnargs, arg.value) > -1
+        moduleState.currentFunction.llvmFunction.getParam(fnargindex)
+
+      # Look if it's a defined variable
+      else if fnvarindex = _.indexOf(fnvars, arg.value) > -1
+
+      # If none of the above, then we raise an exception
+      else
+        ensureExpr(expr, false, "Function does not contain variable")
 
     # arg must be an constant
     else
-      constants[arg.type](arg.value)
-  )
+      constants[arg.type](arg.value))
+
+
+# ######################################################################
+# Built in operators such as ADD, SUB, MUL, DIV and so on
+builtIn = {}
+builtIn.add = (moduleState, expr) ->
+  ensureExpr(expr, moduleState.currentBuilder?, "Call not inside a block")
+
+  args = buildLLVMArguments(moduleState, expr)
+
   moduleState.llvmVar = moduleState.currentBuilder.buildAdd(
     args[0], args[1], 'tmp')
   moduleState
@@ -50,30 +75,16 @@ builtIn.add = (moduleState, expr) ->
 builtIn.sub = (moduleState, expr) ->
   ensureExpr(expr, moduleState.currentBuilder?, "Call not inside a block")
 
-  fnargs = _.pluck(moduleState.currentFunction.functionArgs.args, 'value')
-  fnvars = moduleState.currentFunction.functionVars
-
-  args = _.map(_.tail(expr.args), (arg) ->
-    # if arg is an expression
-    if arg.type == 'EXPR'
-      throw "Can't handle this yet"
-
-    # if arg isn't an expression but an variable
-    else if arg.type == 'IDENT'
-      fnargindex = _.indexOf(fnargs, arg.value)
-      ensureExpr(expr, fnargindex > -1, "Function does not contain variable")
-      moduleState.currentFunction.llvmFunction.getParam(fnargindex)
-
-      # This needs to be able to handle variables aswell
-
-    # arg must be an constant
-    else
-      constants[arg.type](arg.value))
+  args = buildLLVMArguments(moduleState, expr)
 
   moduleState.llvmVar = moduleState.currentBuilder.buildSub(
     args[0], args[1], 'tmp')
   moduleState
 
+
+########################################################################
+# Conversion of high level constructs such as
+# declarations, defines, expressions and blocks
 convert = {}
 convert.function = (moduleState, expr) ->
   lastExpr = _.last(expr.args)
@@ -101,6 +112,7 @@ convert.define = (moduleState, expr) ->
     expr.args.length > 3 and
     expr.args.length < 5,
     "Function definition must contain function-type, function-name arity and list of blocks")
+
   type    = moduleState.types[expr.args[1].value]
   varName = expr.args[2].value
 
@@ -120,7 +132,9 @@ convert.define = (moduleState, expr) ->
     moduleState.currentFunction = null
     moduleState
 
-  moduleState
+  else if type.typeName == "int-type"
+
+    moduleState
 
 convert.block = (moduleState, expr) ->
   moduleState.currentFunction.blocks ?= {}
@@ -143,7 +157,6 @@ convert.block = (moduleState, expr) ->
   builder.buildRet(moduleState.llvmVar)
 
   moduleState.llvmVar = null
-
   moduleState.currentBuilder = null
 
   moduleState
@@ -151,24 +164,8 @@ convert.block = (moduleState, expr) ->
 convert.call = (moduleState, expr) ->
   ensureExpr(expr, moduleState.currentBuilder?, "Call not inside a block")
 
-  fnargs = _.pluck(moduleState.currentFunction.functionArgs.args, 'value')
-  fnvars = moduleState.currentFunction.functionVars
+  args = buildLLVMArguments(moduleState, expr)
 
-  args = _.map(_.tail(expr.args), (arg) ->
-    # if arg is an expression
-    if arg.type == 'EXPR'
-      throw "Can't handle this yet"
-
-    # if arg isn't an expression but an variable
-    else if arg.type == 'IDENT'
-      fnargindex = _.indexOf(fnargs, arg.value)
-      ensureExpr(expr, fnargindex > -1, "Function does not contain variable")
-      moduleState.currentFunction.llvmFunction.getParam(fnargindex)
-
-    # arg must be an constant
-    else
-      constants[arg.type](arg.value)
-  )
   callee = moduleState.functions[_.head(expr.args).value]
 
   moduleState.llvmVar = moduleState.currentBuilder.buildCall(
