@@ -7,6 +7,7 @@ strip = require("./util").strip
 
 typeMap =
   "int-type" : llvm.Library.LLVMInt64Type
+  "byte-type" : llvm.Library.LLVMInt8Type
 
 constants =
   INT : (value) ->
@@ -43,6 +44,33 @@ builtIn.add = (moduleState, expr) ->
       constants[arg.type](arg.value)
   )
   moduleState.llvmVar = moduleState.currentBuilder.buildAdd(
+    args[0], args[1], 'tmp')
+  moduleState
+
+builtIn.sub = (moduleState, expr) ->
+  ensureExpr(expr, moduleState.currentBuilder?, "Call not inside a block")
+
+  fnargs = _.pluck(moduleState.currentFunction.functionArgs.args, 'value')
+  fnvars = moduleState.currentFunction.functionVars
+
+  args = _.map(_.tail(expr.args), (arg) ->
+    # if arg is an expression
+    if arg.type == 'EXPR'
+      throw "Can't handle this yet"
+
+    # if arg isn't an expression but an variable
+    else if arg.type == 'IDENT'
+      fnargindex = _.indexOf(fnargs, arg.value)
+      ensureExpr(expr, fnargindex > -1, "Function does not contain variable")
+      moduleState.currentFunction.llvmFunction.getParam(fnargindex)
+
+      # This needs to be able to handle variables aswell
+
+    # arg must be an constant
+    else
+      constants[arg.type](arg.value))
+
+  moduleState.llvmVar = moduleState.currentBuilder.buildSub(
     args[0], args[1], 'tmp')
   moduleState
 

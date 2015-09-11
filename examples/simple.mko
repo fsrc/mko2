@@ -1,10 +1,10 @@
 ; Declare a function
-(function tripple-int-fun (int-type int-type int-type))
-(define tripple-int-fun my-add ((a b)
+(function tripple-byte-fun (byte-type byte-type byte-type))
+(define tripple-byte-fun my-add ((a b)
   (block entry
     (add a b))))
 
-(function single-int-fun (int-type))
-(define single-int-fun main (()
+(function single-byte-fun (byte-type))
+(define single-byte-fun main (()
   (block entry
     (my-add 3 4))))
