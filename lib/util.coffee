@@ -25,3 +25,9 @@ exports.logger = (filter, id) ->
       if prio <=  filter
         console.log("[%s:%s] %s", prio, id, texts...)
 
+# ######################################################################
+# Helper that throws exception if condition isn't truthy
+exports.ensure = (expr, truthy, msg) ->
+  if not truthy
+    console.log expr
+    throw msg
