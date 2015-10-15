@@ -7,6 +7,7 @@ fop       = require("./io")
 tokenizer = require("./tokenizer")
 parser    = require("./parser")
 convert   = require("./llvm")
+reader    = require("./reader")
 
 module.exports = (TOK) ->
   do (TOK) ->
@@ -23,12 +24,14 @@ module.exports = (TOK) ->
         .onIsEof((token) -> token.type == TOK.EOF.id)
         .onError(cb)
         .onExpression((expr) ->
-          if expr?
-            moduleState ?= convert.module(fqModuleName)
-            moduleState = convert.exprToAst(moduleState, expr))
+          console.dir(reader(expr))
+          #if expr?
+            #moduleState ?= convert.module(fqModuleName)
+            #moduleState = convert.exprToAst(moduleState, expr)
+        )
         .onEof((block) ->
-          moduleState.llvmModule.dump()
-          moduleState.llvmModule.writeBitcodeToFile(fop.fullBitcodeFileNameForPath(rootPath, moduleName))
+          #moduleState.llvmModule.dump()
+          #moduleState.llvmModule.writeBitcodeToFile(fop.fullBitcodeFileNameForPath(rootPath, moduleName))
           cb(null))
 
       t = tokenizer.create(TOK)

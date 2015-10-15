@@ -9,10 +9,6 @@ data    = require("./lib/data")(TOK)
 modules = require("./lib/modules")(TOK)
 
 
-rootNamespace = 'org.mko2.test'
-
-
-
 bootstrap = (namespace, rootPath, entryModule, cb) ->
   do (namespace, entryModule, rootPath, cb) ->
     modules.load(namespace, rootPath, entryModule, (err, parsed) ->

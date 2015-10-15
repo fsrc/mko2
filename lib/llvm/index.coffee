@@ -1,5 +1,5 @@
 _     = require("lodash")
-llvm  = require("llvm2")
+llvm  = require("llvm3")
 
 log   = require("../util").logger(0, 'llvm')
 pp    = require("../util").pp
@@ -33,7 +33,7 @@ convert.function = (moduleState, expr) ->
 
   moduleState.types[expr.args[1].value] =
     typeName : "function-type"
-    llvmType : new llvm.FunctionType(retType, argTypes, false)
+    llvmType : llvm.types.fun(retType, argTypes)
   moduleState
 
 convert.define = (moduleState, expr) ->
@@ -121,7 +121,7 @@ convert.exprToAst = (moduleState, expr) ->
       builtIn.call(moduleState, expr)
 
 convert.module = (name) ->
-  llvmModule : new llvm.Module(name)
+  llvmModule : llvm.module(name)
   types : {}
   functions : {}
 

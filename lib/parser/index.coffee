@@ -5,7 +5,7 @@ ast = require("./manipulators")
 # Construct a closure around the parser
 create = (moduleName) ->
   do (moduleName) ->
-    log = require("./util").logger(0, "parser[#{moduleName}]")
+    log = require("../util").logger(0, "parser[#{moduleName}]")
     # Keeps track of current expression and
     # subparser if we are nested
     state = { expr: null, feeder: null, block: [] }
