@@ -2,7 +2,7 @@
 (function tripple-byte-fun (byte-type byte-type byte-type))
 (define tripple-byte-fun my-add ((a b)
   (block entry
-    (add a b))))
+    (sub a b))))
 
 (function single-byte-fun (byte-type))
 (define single-byte-fun main (()

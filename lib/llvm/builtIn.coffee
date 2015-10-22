@@ -34,24 +34,41 @@ buildLLVMArguments = (moduleState, expr) ->
 
 # ######################################################################
 # Built in operators such as ADD, SUB, MUL, DIV and so on
+operator = (moduleState, expr, fun) ->
+  ensure(expr, moduleState.currentBuilder?, "Call not inside a block")
+
+  args = buildLLVMArguments(moduleState, expr)
+
+  moduleState.llvmVar =
+    moduleState.currentBuilder[fun](args[0], args[1], 'tmp')
+  moduleState
+
 builtIn = {}
-builtIn.add = (moduleState, expr) ->
-  ensure(expr, moduleState.currentBuilder?, "Call not inside a block")
-
-  args = buildLLVMArguments(moduleState, expr)
-
-  moduleState.llvmVar = moduleState.currentBuilder.buildAdd(
-    args[0], args[1], 'tmp')
-  moduleState
-
-builtIn.sub = (moduleState, expr) ->
-  ensure(expr, moduleState.currentBuilder?, "Call not inside a block")
-
-  args = buildLLVMArguments(moduleState, expr)
-
-  moduleState.llvmVar = moduleState.currentBuilder.buildSub(
-    args[0], args[1], 'tmp')
-  moduleState
+builtIn.add = (moduleState, expr) -> operator(moduleState, expr, "buildAdd")
+builtIn.nswadd = (moduleState, expr) -> operator(moduleState, expr, "buildNSWAdd")
+builtIn.nuwadd = (moduleState, expr) -> operator(moduleState, expr, "buildNUWAdd")
+builtIn.fadd = (moduleState, expr) -> operator(moduleState, expr, "buildFAdd")
+builtIn.sub = (moduleState, expr) -> operator(moduleState, expr, "buildSub")
+builtIn.nswsub = (moduleState, expr) -> operator(moduleState, expr, "buildNSWSub")
+builtIn.nuwsub = (moduleState, expr) -> operator(moduleState, expr, "buildNUWSub")
+builtIn.fsub = (moduleState, expr) -> operator(moduleState, expr, "buildFSub")
+builtIn.mul = (moduleState, expr) -> operator(moduleState, expr, "buildMul")
+builtIn.nswmul = (moduleState, expr) -> operator(moduleState, expr, "buildNSWMul")
+builtIn.nuwmul = (moduleState, expr) -> operator(moduleState, expr, "buildNUWMul")
+builtIn.fmul = (moduleState, expr) -> operator(moduleState, expr, "buildFMul")
+builtIn.udiv = (moduleState, expr) -> operator(moduleState, expr, "buildUDiv")
+builtIn.sdiv = (moduleState, expr) -> operator(moduleState, expr, "buildSDiv")
+builtIn.exactsdiv = (moduleState, expr) -> operator(moduleState, expr, "buildExactSDiv")
+builtIn.fdiv = (moduleState, expr) -> operator(moduleState, expr, "buildFDiv")
+builtIn.urem = (moduleState, expr) -> operator(moduleState, expr, "buildURem")
+builtIn.srem = (moduleState, expr) -> operator(moduleState, expr, "buildSRem")
+builtIn.frem = (moduleState, expr) -> operator(moduleState, expr, "buildFRem")
+builtIn.shl = (moduleState, expr) -> operator(moduleState, expr, "buildShl")
+builtIn.lshr = (moduleState, expr) -> operator(moduleState, expr, "buildLShr")
+builtIn.ashr = (moduleState, expr) -> operator(moduleState, expr, "buildAShr")
+builtIn.and = (moduleState, expr) -> operator(moduleState, expr, "buildAnd")
+builtIn.or = (moduleState, expr) -> operator(moduleState, expr, "buildOr")
+builtIn.xor = (moduleState, expr) -> operator(moduleState, expr, "buildXor")
 
 builtIn.call = (moduleState, expr) ->
   ensure(expr, moduleState.currentBuilder?, "Call not inside a block")
