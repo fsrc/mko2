@@ -1,5 +1,5 @@
 _     = require("lodash")
-llvm  = require("llvm2")
+llvm  = require("llvm3")
 log   = require("./util").logger(20, 'code-generators')
 
 builder = new llvm.Builder()

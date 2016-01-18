@@ -1,12 +1,12 @@
-llvm  = require("llvm2")
+llvm  = require("llvm3")
 
 # ######################################################################
 # Mapping of types
 exports.typeMap = typeMap =
-  "int-type" : llvm.Library.LLVMInt64Type
-  "byte-type" : llvm.Library.LLVMInt8Type
-  "str-type" : llvm.Library.LLVMInt8Type
-  "bool-type" : llvm.Library.LLVMInt1Type
+  "int-type" : llvm.func.LLVMInt64Type
+  "byte-type" : llvm.func.LLVMInt8Type
+  "str-type" : llvm.func.LLVMInt8Type
+  "bool-type" : llvm.func.LLVMInt1Type
 
 # ######################################################################
 # Mapping of constants

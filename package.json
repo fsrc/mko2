@@ -10,7 +10,7 @@
   "license": "BSD",
   "dependencies": {
     "async": "^1.4.2",
-    "llvm2": "^0.2.13",
+//    "llvm2": "^0.2.13",
     "lodash": "^3.10.1",
     "prettyjson": "^1.1.3"
   }

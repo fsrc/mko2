@@ -17,13 +17,13 @@ module.exports =
     args: args ? []
 
   # Add a part within the expression
-  addExprArg : (expr, value, type, line, column) ->
+  addExprArg : (expr, value, type, line, column, origin) ->
     type:expr.type
     origin:expr.origin
     starts: expr.starts
     ends: null
     args: expr.args.concat(
-      type:type, line:line, column:column, value:value)
+      type:type, line:line, column:column, value:value, origin:origin)
 
   addSubExpression : (expr, subexpression) ->
     type:expr.type

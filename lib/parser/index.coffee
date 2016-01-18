@@ -48,7 +48,7 @@ create = (moduleName) ->
             # Turns out we already have an expression so we
             # create a new subparser to take care of the
             # subexpression
-            state.feeder = create(moduleName+" >")
+            state.feeder = create(moduleName + " >")
               .onIsOpening(wrapper.isOpening)
               .onIsClosing(wrapper.isClosing)
               .onIsEof(wrapper.isEof)
@@ -101,7 +101,7 @@ create = (moduleName) ->
           else
             log(20, "adding argument")
             # Add items into the list
-            state.expr = ast.addExprArg(state.expr, token.data, token.type, token.line, token.column)
+            state.expr = ast.addExprArg(state.expr, token.data, token.type, token.line, token.column, moduleName)
             log(20, JSON.stringify(state.expr))
 
     wrapper

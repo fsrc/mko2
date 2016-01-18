@@ -24,7 +24,13 @@ module.exports = (TOK) ->
         .onIsEof((token) -> token.type == TOK.EOF.id)
         .onError(cb)
         .onExpression((expr) ->
-          console.dir(reader(expr))
+          try
+            cb(null, reader(expr))
+            #console.dir(expr)
+            #console.dir(reader(expr))
+            #console.log("-------------------------")
+          catch ex
+            cb(ex)
           #if expr?
             #moduleState ?= convert.module(fqModuleName)
             #moduleState = convert.exprToAst(moduleState, expr)
@@ -39,7 +45,7 @@ module.exports = (TOK) ->
         .onToken((token) -> p.feed(token) if TOK.isUseful(token.type))
 
       s = fop.createReadStream(moduleFile)
-        .onError((err) -> cb(err))
+        .onError(cb)
         .onChunk((c) -> t.tokenize(c))
         .onEof(() -> t.tokenize(null))
 
